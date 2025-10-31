@@ -1,0 +1,23 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ReelFetch logo">
+  <defs>
+    <clipPath id="r">
+      <rect x="0" y="0" width="256" height="256" rx="48" ry="48"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#r)">
+    <rect width="256" height="256" fill="#1e3a8a"/>
+    <circle cx="220" cy="36" r="12" fill="#38bdf8"/>
+    <g transform="translate(44,44)">
+      <rect x="0" y="0" width="168" height="168" rx="24" fill="#fff" fill-opacity="0.08" stroke="#f5e8d8"/>
+      <g transform="translate(20,30)">
+        <rect x="0" y="0" width="128" height="28" rx="8" fill="#faf8f5"/>
+        <rect x="0" y="46" width="96" height="28" rx="8" fill="#faf8f5"/>
+        <rect x="0" y="92" width="148" height="28" rx="8" fill="#faf8f5"/>
+      </g>
+      <g transform="translate(116,14)">
+        <circle cx="12" cy="12" r="12" fill="#fb7185"/>
+      </g>
+    </g>
+    <path d="M80 192h96" stroke="#f5e8d8" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

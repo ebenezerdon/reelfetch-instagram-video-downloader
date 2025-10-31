@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReelFetch App – Instagram Video Downloader</title>
+  <meta name="description" content="Paste an Instagram link, preview the post, and download the video in available formats.">
+  <link rel="icon" href="assets/logo.svg">
+  <link rel="stylesheet" href="styles/tailwind.css" data-teda="tailwind-static" />
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
+<body class="bg-cream text-ink min-h-screen">
+  <header class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+    <nav class="flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="assets/logo.svg" alt="ReelFetch logo" class="w-8 h-8"/>
+        <span class="font-extrabold tracking-tight text-lg">ReelFetch</span>
+      </a>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="index.html" class="btn-ghost" aria-label="Back to landing">Home</a>
+        <a href="#help" class="btn-ghost" id="openHelp">Help</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+    <section class="mt-6 sm:mt-10 card p-5 sm:p-8">
+      <h1 class="text-2xl sm:text-3xl font-extrabold">Instagram Video Downloader</h1>
+      <p class="mt-2 text-slate">Paste a public Instagram link to a reel, post with video, or IGTV. We will fetch available formats.</p>
+
+      <form id="fetchForm" class="mt-5" autocomplete="off">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <label for="urlInput" class="sr-only">Instagram URL</label>
+          <input id="urlInput" type="url" inputmode="url" class="input" placeholder="https://www.instagram.com/reel/..." aria-label="Instagram URL" spellcheck="false" required />
+          <button id="fetchBtn" type="submit" class="btn-primary min-w-[150px]">Get video</button>
+        </div>
+        <div class="flex items-center gap-2 mt-3 text-xs text-slate">
+          <button type="button" class="btn-ghost px-0" id="pasteBtn" aria-label="Paste from clipboard">Paste</button>
+          <span>·</span>
+          <button type="button" class="btn-ghost px-0" id="demoBtn">Try a demo</button>
+        </div>
+      </form>
+
+      <div id="statusRow" class="mt-4 hidden">
+        <div class="flex items-center gap-3 text-sm">
+          <div class="loader h-5 w-5" aria-hidden="true"></div>
+          <span id="statusText" class="text-slate">Fetching...</span>
+        </div>
+      </div>
+
+      <div id="errorRow" class="mt-4 hidden">
+        <div class="p-3 rounded-xl bg-coral/10 text-coral text-sm" role="alert" aria-live="polite"></div>
+      </div>
+
+      <div id="resultsPanel" class="mt-6 hidden">
+        <div class="flex flex-col md:flex-row gap-6">
+          <aside class="w-full md:w-[40%]">
+            <div class="aspect-video bg-sand rounded-2xl overflow-hidden relative">
+              <img id="resultThumb" src="" alt="Post preview" class="w-full h-full object-cover">
+              <div class="absolute top-2 left-2 badge" id="authorBadge"></div>
+            </div>
+            <div class="mt-3">
+              <h2 id="resultTitle" class="text-lg font-semibold line-clamp-2"></h2>
+              <div id="resultLinkWrap" class="mt-2 text-xs text-slate break-all"></div>
+            </div>
+          </aside>
+
+          <div class="w-full md:w-[60%]">
+            <div class="p-4 rounded-2xl bg-sand/50">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold">Download options</h3>
+                <span class="badge" id="formatCount">0 formats</span>
+              </div>
+              <div id="formatList" class="mt-3 space-y-3"></div>
+            </div>
+            <div class="mt-3 text-xs text-slate">
+              Trouble downloading? Try opening the link then saving from the player, or use a fallback service we list when needed.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold">Recently fetched</h2>
+        <button id="clearHistory" class="btn-ghost">Clear</button>
+      </div>
+      <div id="historyEmpty" class="text-slate text-sm">No history yet. Your recent downloads will appear here.</div>
+      <div id="historyList" class="mt-3 flex gap-4 overflow-x-auto pb-2 snap-x"></div>
+    </section>
+
+    <section class="mt-10 text-xs text-slate" id="disclaimer">
+      <p>Use this tool for personal, permitted use only. Respect creators and copyrights. Some links may not be downloadable due to platform restrictions, private accounts, or removed posts.</p>
+    </section>
+  </main>
+
+  <!-- Help modal -->
+  <div id="helpModal" class="fixed inset-0 hidden items-end sm:items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
+    <div class="relative card w-full sm:w-[560px] p-6 mx-3 mb-3 sm:mb-0">
+      <div class="flex items-start justify-between gap-4">
+        <h3 class="text-xl font-bold">Help</h3>
+        <button class="btn-ghost" id="closeHelp" aria-label="Close help">Close</button>
+      </div>
+      <ol class="mt-3 text-sm text-ink/90 space-y-2">
+        <li>1. Copy the Instagram link to a public reel or video post.</li>
+        <li>2. Paste it and press Get video.</li>
+        <li>3. Choose a format and open the download in a new tab, then save.</li>
+      </ol>
+      <p class="mt-3 text-xs text-slate">If a direct URL cannot be extracted, we will show safe fallback options.</p>
+    </div>
+  </div>
+
+  <!-- Required script order -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="scripts/helpers.js"></script>
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
