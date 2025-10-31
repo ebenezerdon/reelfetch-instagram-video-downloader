@@ -42,15 +42,71 @@
   // Network helpers
   window.App.Net = {
     fetchViaProxy: function(url, opts = {}){
-      // Use AllOrigins to bypass CORS and retrieve HTML content.
-      // https://api.allorigins.win/raw?url=
-      const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-      const timeoutMs = opts.timeout || 15000;
+      const timeoutMs = opts.timeout || 18000;
+      // Try multiple CORS-friendly proxies sequentially for reliability
+      const targets = [
+        {
+          name: 'allorigins-json',
+          build: (u) => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
+          dataType: 'json',
+          transform: (res) => (res && res.contents) || ''
+        },
+        {
+          name: 'isomorphic-git',
+          build: (u) => 'https://cors.isomorphic-git.org/' + u,
+          dataType: 'text'
+        },
+        {
+          name: 'allorigins-raw',
+          build: (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+          dataType: 'text'
+        },
+        {
+          name: 'jina-reader',
+          // Jina reader proxy (works for many HTML pages and sends permissive CORS)
+          build: (u) => 'https://r.jina.ai/http://' + String(u).replace(/^https?:\/\//i, ''),
+          dataType: 'text'
+        }
+      ];
+
       return new Promise(function(resolve, reject){
-        const timer = setTimeout(function(){ reject(new Error('Request timed out')); }, timeoutMs);
-        $.ajax({ url: proxied, method: 'GET', dataType: 'text' })
-          .done(function(html){ clearTimeout(timer); resolve(html); })
-          .fail(function(xhr){ clearTimeout(timer); reject(new Error('Fetch failed: ' + (xhr && xhr.status))); });
+        let lastErr = null;
+        const tryNext = function(i){
+          if (i >= targets.length) {
+            reject(lastErr || new Error('All proxy attempts failed'));
+            return;
+          }
+          const t = targets[i];
+          const reqUrl = t.build(url);
+          let xhr;
+          const timer = setTimeout(function(){
+            try { if (xhr) xhr.abort(); } catch (e) {}
+            lastErr = new Error('Timeout via ' + t.name);
+            tryNext(i + 1);
+          }, timeoutMs);
+
+          xhr = $.ajax({ url: reqUrl, method: 'GET', dataType: t.dataType || 'text' })
+            .done(function(res){
+              clearTimeout(timer);
+              try {
+                const html = t.transform ? t.transform(res) : res;
+                if (!html || typeof html !== 'string' || html.length < 50) {
+                  // Treat very small responses as failures for our parser
+                  throw new Error('Empty or invalid response via ' + t.name);
+                }
+                resolve(html);
+              } catch (e) {
+                lastErr = e;
+                tryNext(i + 1);
+              }
+            })
+            .fail(function(xhr){
+              clearTimeout(timer);
+              lastErr = new Error('Fetch failed via ' + t.name + (xhr && xhr.status ? (' (' + xhr.status + ')') : ''));
+              tryNext(i + 1);
+            });
+        };
+        tryNext(0);
       });
     }
   };
