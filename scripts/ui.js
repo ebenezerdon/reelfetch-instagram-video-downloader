@@ -189,7 +189,7 @@
 
     // Demo button with a known public reel link; if blocked, still demonstrates flow
     $('#demoBtn').on('click', function(){
-      const demo = 'https://www.instagram.com/reel/CxK8iX0M123/';
+      const demo = 'https://www.instagram.com/reel/DQbwgmWjJuZ';
       $('#urlInput').val(demo);
       $('#fetchForm').trigger('submit');
     });
